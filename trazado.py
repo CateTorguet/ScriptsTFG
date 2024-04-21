@@ -38,12 +38,17 @@ def Ubicar_img(j):
         nombre_img = "runs/detect" + "/exp"+str(num) + "/" + f"{j:06d}.png"
     return nombre_img
 
-def ubicar_txt(i):
+def Ubicar_txt(i):
     if(i == 499):
         dir = "runs/detect" + "/exp" + "/labels/"+ f"{i:06d}.txt"
     else:
         num = i-498
         dir = "runs/detect" + "/exp"+str(num) + "/labels/" + f"{i:06d}.txt"
+    return dir
+
+def Ubicar_txt_radar(i):
+
+    dir = "FusionSens-Radar/radar/" + f"{i:06d}.txt"
     return dir
 
 def draw_rect(coordenadas, i, file, ax):
@@ -58,6 +63,8 @@ def draw_rect(coordenadas, i, file, ax):
     ax.add_patch(rectangulo)
 
 def color_por_distancia(x):
+
+    #Distancia tamaño del punto
     if x > 20:
         return 'b'
     elif x > 10:
@@ -71,7 +78,7 @@ def color_por_distancia(x):
     else:
         return 'w'
 
-def ubicar_ply(i):
+def Ubicar_ply(i):
     return "FusionSens-Lidar/lidar/" + f"{i:06d}.ply"
 
 def leer_coordenadas_lidiar(nombre_archivo): 
@@ -84,6 +91,17 @@ def leer_coordenadas_lidiar(nombre_archivo):
             return [tuple(map(float, linea.split()[:-1])) + (1,) for linea in lineas]
         #[tuple(map(float, linea.split()[:-1])) + (1,) for linea in lineas]
             
+    except FileNotFoundError:
+        print(f"Error: El archivo {nombre_archivo} no existe.")
+    except Exception as e:
+        print(f"Error al leer las coordenadas desde {nombre_archivo}: {e}")
+
+def leer_coordenadas_radar(nombre_archivo): # Input nombre de archivo
+    #nombre_archivo = "FusionSens-Radar/radar/000499.txt"
+    try:
+        with open(nombre_archivo, 'r') as archivo:
+            lineas = archivo.readlines()
+            return [tuple(map(float, linea.split(','))) for linea in lineas]
     except FileNotFoundError:
         print(f"Error: El archivo {nombre_archivo} no existe.")
     except Exception as e:
@@ -119,10 +137,39 @@ def matrix_mult(X):
     point_img[1] /= point_img[2]
     return point_img[0:2]
 
-def main(leer_archivo, count_dir, Ubicar_img, ubicar_txt, draw_rect):
+def matrix_mult_radar(X):
+    k = build_projection_matrix(1200, 900, 90)
+
+    X = [X[2], -X[0], X[1]]
+    X = [X[1], -X[2], X[0]]
+    point_img = np.dot(k, X)
+    # Normalize
+    point_img[0] /= point_img[2]
+    point_img[1] /= point_img[2]
+    return point_img[0:3]
+
+def polares_2_cartesianas(azimuth, altitude, depth, v):
+
+    x = depth * np.sin(altitude) * np.cos(azimuth)
+    y = depth * np.sin(altitude) * np.sin(azimuth)
+    z = depth * np.cos(altitude)
+    return [x, y, z, v]
+
+def clamp(min_value, max_value, value):
+    return max(min_value, min(max_value, value))
+
+def norm_v(v):
+    norm_velocity = v/ 7.5 # range [-1, 1]
+    r = int(clamp(0.0, 1.0, 1.0 - norm_velocity) * 255.0)
+    g = int(clamp(0.0, 1.0, 1.0 - abs(norm_velocity)) * 255.0)
+    b = int(abs(clamp(- 1.0, 0.0, - 1.0 - norm_velocity)) * 255.0)
+    return r,g,b
+
+def main(leer_archivo, count_dir, Ubicar_img, Ubicar_txt, draw_rect):
     parser = argparse.ArgumentParser(description="Comprobación sobre el control de las coordenadas en las que se detecto actividad.") 
     parser.add_argument("-img", action="store_true", help="Mostrar imagen de fondo.")
     parser.add_argument("-s", action="store_true", help="Mostrar gráfico.")
+    parser.add_argument("--save", action="store_true", help="Guardar Resultados")
     parser.add_argument("--n", type=int, default=float('inf'), help="Número máximo de rectángulos a dibujar.")
     args = parser.parse_args()
     #Lista[][][] Coordenadas de todos los experimentos a trazar
@@ -130,22 +177,32 @@ def main(leer_archivo, count_dir, Ubicar_img, ubicar_txt, draw_rect):
 
     for i in range(499, 499+count_dir()):
         #Read   
-        nombre_archivo = ubicar_txt(i) 
+        nombre_archivo = Ubicar_txt(i) 
         coordenadas_rectangulo = leer_archivo(nombre_archivo)
         coordenadas.append(coordenadas_rectangulo)                      # Se añade la lectura de un fichero  
 
         nombre_img = Ubicar_img(i)
         background_img = mpimg.imread(nombre_img)
         
-        nombre_ply = ubicar_ply(i)
+        nombre_ply = Ubicar_ply(i)
         detecciones_lidiar = leer_coordenadas_lidiar(nombre_ply)
         matrices = matrix_type_converter(detecciones_lidiar)
+
+        nombre_radar = Ubicar_txt_radar(i)
+        coordenadas_radar = leer_coordenadas_radar(nombre_radar)
+        puntos = []
+        for coor in coordenadas_radar:
+            punto = polares_2_cartesianas(coor[1] * np.pi, coor[2] * np.pi, coor[3], coor[0])    
+            puntos.append(punto)
+        matrices_radar = []
+        for tup in puntos:
+            matrices_radar.append(np.array(tup).reshape(4, 1))
 
 
         #Draw
         fig, ax = plt.subplots()
-        ax.set_xlim(-500, 1500)
-        ax.set_ylim(-1000, 0)
+        ax.set_xlim(0, 1200)
+        ax.set_ylim(-900, 0)
         ax.set_aspect('equal', adjustable='datalim')
         ax.set_frame_on(False)
         plt.title(f'Verificación de funcionamiento - Archivo-{str(i - 498)}')              
@@ -156,22 +213,25 @@ def main(leer_archivo, count_dir, Ubicar_img, ubicar_txt, draw_rect):
                     if(detecciones_lidiar[j][2] > -0.8 ):
                         punto = matrix_mult(matrices[j])
                         color = color_por_distancia(detecciones_lidiar[j][0])
-                        ax.plot(punto[0], -punto[1], color + 'o', alpha=0.5)
+                        ax.plot(punto[0], -punto[1], color + 'o', markersize=1, alpha=0.5)
 
-
+        for k in range(len(coordenadas_radar)):    
+            #Draw
+            r, g, b = norm_v(puntos[k][3])
+            pun= matrix_mult_radar(matrices_radar[k])
+            ax.plot(pun[0], -pun[1], color=(r/255, g/255, b/255), markersize=2,marker='o')
         
 
         # Guarda y mostrar           Argumentos para el guardado de los eventos {}
         if(args.img):
             #ax.imshow(background_img, extent=[0, 1, -1, 0])
             ax.imshow(background_img, extent=[0, 1200, -900, 0])
+        if(args.save):
             plt.savefig('results/Laser-Traces-img/lidiar-' + str(i), bbox_inches='tight')
-        
-        #plt.savefig('results/Laser-Traces/lidiar-' + str(i), bbox_inches='tight')
-        
+        #plt.savefig('results/Laser-Traces/lidiar-' + str(i), bbox_inches='tight'
         if(args.s):
             plt.show()
         plt.close()
 
 if __name__ == "__main__":
-    main(leer_archivo, count_dir, Ubicar_img, ubicar_txt, draw_rect)
+    main(leer_archivo, count_dir, Ubicar_img, Ubicar_txt, draw_rect)   # Draw_All F(x) -> 3*f(x)
