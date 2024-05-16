@@ -16,8 +16,7 @@ def leer_coordenadas_yolo(nombre_archivo):
 def leer_coordenadas_lidiar(nombre_archivo): 
     try:
         with open(nombre_archivo, 'r') as archivo:
-
-            lineas = archivo.readlines()    #Líneas[8] Comienzan las coordenadas
+            lineas = archivo.readlines()                                               #Líneas[8] Comienzan las coordenadas
             del lineas[0:8]
             return [tuple(map(float, linea.split()[:-1])) + (1,) for linea in lineas]  #[tuple(map(float, linea.split()[:-1])) + (1,) for linea in lineas]
         
@@ -34,6 +33,4 @@ def leer_coordenadas_radar(nombre_archivo):
     except FileNotFoundError:
         print(f"Error: El archivo {nombre_archivo} no existe.")
     except Exception as e:
-        print(f"Error al leer las coordenadas desde {nombre_archivo}: {e}")
-
-        
+        print(f"Error al leer las coordenadas desde {nombre_archivo}: {e}")     

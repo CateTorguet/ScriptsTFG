@@ -1,5 +1,5 @@
 import numpy as np
-
+import matplotlib.patches as patches 
 
 def build_projection_matrix(w, h, fov):
     focal = w / (2.0 * np.tan(fov * np.pi / 360.0))
@@ -29,6 +29,37 @@ def matrix_mult(X):
     point_img[1] /= point_img[2]
     return point_img[0:2]
 
+def Prepare_lidar_data(detecciones_lidiar):
+    puntos = []
+    colores = []
+    indices= []
+
+    matrices = matrix_type_converter(detecciones_lidiar)
+    for j in range(len(matrices)):
+        # if -11 < detecciones_lidiar[j][1] < 11 and detecciones_lidiar[j][0] > 1 and detecciones_lidiar[j][2] > -0.8:
+        if(matrices[j][1] > -11 and matrices[j][1] < 11):
+            if(matrices[j][0] > 1):
+                if(matrices[j][2] > -0.8 ):
+                    colores.append(color_por_distancia(detecciones_lidiar[j][0]))
+                    punto = matrix_mult(matrices[j])
+                    indices.append(j)
+                    puntos.append(punto)
+    return puntos, colores, indices
+
+def color_por_distancia(x):
+    if x > 20:
+        return 'b'
+    elif x > 10:
+        return 'c'
+    elif x > 6:
+        return 'g'
+    elif x > 4:
+        return 'y'
+    elif x > 1:
+        return 'r'
+    else:
+        return 'w'
+
 #Radar 
 def matrix_type_converter_rardar(coordenadas_radar):
     puntos_radar = []
@@ -55,3 +86,30 @@ def polares_2_cartesianas(azimuth, altitude, depth, v):
     y = depth * np.sin(altitude) * np.sin(azimuth)
     z = depth * np.cos(altitude)
     return [x, y, z, v]
+
+# Trazado peatón
+
+def Obtener_lidar_ObjetosDetectados(coordenadas_yolo, detecciones_lidar, puntos_lidar, indices):
+    trazado_person = []
+    for categoria in coordenadas_yolo:
+        match categoria[0]:
+            case 0:
+                peaton = categoria[1:]
+                x2 = peaton[0] - peaton[2] / 2
+                y2 = peaton[1] - peaton[3] / 2
+                rectangulo = patches.Rectangle((x2 * 1200, -y2 * 900), 
+                                           peaton[2] * 1200, 
+                                           -peaton[3] * 900,
+                                        linewidth=1, facecolor='r')
+                for punto, i in zip(puntos_lidar, indices):
+                    if rectangulo.contains_point(punto):
+                        # Capture
+                        trazado_person.append(detecciones_lidar[i])
+                        pass
+                    
+            case 2:
+                print("._. Coche")
+            case 7:
+                print("PickUp Some Whatevah")
+            case _:
+                pass

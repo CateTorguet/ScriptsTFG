@@ -15,19 +15,19 @@ if __name__ == "__main__":
     parser.add_argument("--n", type=int, default=float('inf'), help="Número máximo de rectángulos a dibujar.")
     args = parser.parse_args()
 # Se añade la lectura de un fichero  coordenadas = []
-# coordenadas.append(coordenadas_rectangulo)   
-
+# coordenadas.append(coordenadas_yolo)   
+    puntos_peatón = []
     for i in range(499, 499+count_dir()):
         #Read   
         nombre_archivo = Ubicar_txt(i) 
-        coordenadas_rectangulo = leer_coordenadas_yolo(nombre_archivo)
+        coordenadas_yolo = leer_coordenadas_yolo(nombre_archivo)
 
         nombre_img = Ubicar_img(i)
         background_img = mpimg.imread(nombre_img)
         
         nombre_ply = Ubicar_ply(i)
         detecciones_lidiar = leer_coordenadas_lidiar(nombre_ply)
-        matrices = matrix_type_converter(detecciones_lidiar)
+        puntos_2D, colores, indices = Prepare_lidar_data(detecciones_lidiar)
 
         nombre_radar = Ubicar_txt_radar(i)
         coordenadas_radar = leer_coordenadas_radar(nombre_radar)
@@ -41,8 +41,10 @@ if __name__ == "__main__":
         ax.set_frame_on(False)
         plt.title(f'Verificación de funcionamiento - Archivo-{str(i - 498)}')              
 
-        draw_rect(coordenadas_rectangulo)
-        draw_lidar(detecciones_lidiar, matrices, ax)
+        
+        #draw_lidar(detecciones_lidiar, ax)
+        draw_lidar(puntos_2D, colores, ax)
+        draw_rect(coordenadas_yolo, ax)
         draw_radar(coordenadas_radar, puntos_radar, matrices_radar, ax)
         
         # Guarda y mostrar           Argumentos para el guardado de los eventos {}   #plt.savefig('results/Laser-Traces/lidiar-' + str(i), bbox_inches='tight'

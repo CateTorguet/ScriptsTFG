@@ -1,44 +1,25 @@
 import matplotlib.patches as patches
-from Proyeccion_2D import matrix_mult, matrix_mult_radar
+from Proyeccion_2D import matrix_mult, matrix_mult_radar, matrix_type_converter
 
 # Yolov5
-def draw_rect(coordenadas, i, file, ax):
+def draw_rect(coordenadas, ax):
     colores = ['r', 'g', 'b', 'c', 'm', 'y', 'k']
-    x2 = coordenadas[file][i][0] - coordenadas[file][i][2] / 2
-    y2 = coordenadas[file][i][1] - coordenadas[file][i][3] / 2
-        
-    rectangulo = patches.Rectangle((x2, -y2),
-                                    coordenadas[file][i][2],
-                                    -coordenadas[file][i][3],
-                                    linewidth=1, edgecolor=colores[i % len(colores)], facecolor='none')
-    ax.add_patch(rectangulo)
+    for i in range(len(coordenadas)):
+        x2 = coordenadas[i][0] - coordenadas[i][2] / 2
+        y2 = coordenadas[i][1] - coordenadas[i][3] / 2
+        rectangulo = patches.Rectangle((x2 * 1200, -y2 * 900), coordenadas[i][2] * 1200, -coordenadas[i][3] * 900 ,
+                                        linewidth=1, edgecolor=colores[i % len(colores)], facecolor='none')
+        ax.add_patch(rectangulo)
 
 
-#   Lidar
-def draw_lidar(detecciones_lidiar, matrices, ax):
-    for j in range(len(detecciones_lidiar)):
-        if(detecciones_lidiar[j][1] > -11 and detecciones_lidiar[j][1] < 11):
-            if(detecciones_lidiar[j][0] > 1):
-                if(detecciones_lidiar[j][2] > -0.8 ):
-                    punto = matrix_mult(matrices[j])
-                    color = color_por_distancia(detecciones_lidiar[j][0])
-                    ax.plot(punto[0], -punto[1], color + 'o', markersize=1, alpha=0.5)
-
-def color_por_distancia(x):
-    if x > 20:
-        return 'b'
-    elif x > 10:
-        return 'c'
-    elif x > 6:
-        return 'g'
-    elif x > 4:
-        return 'y'
-    elif x > 1:
-        return 'r'
-    else:
-        return 'w'
+# Lidar
+def draw_lidar(puntos_2D, colores, ax): 
+    for point, color in zip(puntos_2D, colores):
+        ax.plot(point[0], -point[1], color + 'o', markersize=2, alpha=0.5)
     
 # Radar
+# Tasks: Cambiar iterador draw_radar()
+
 def draw_radar(coordenadas_radar, puntos_radar, matrices_radar, ax):
     for k in range(len(coordenadas_radar)):    
         r, g, b = norm_v(puntos_radar[k][3])
