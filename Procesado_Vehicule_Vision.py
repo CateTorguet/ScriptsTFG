@@ -14,8 +14,8 @@ if __name__ == "__main__":
     parser.add_argument("--save", action="store_true", help="Guardar Resultados")
     parser.add_argument("--n", type=int, default=float('inf'), help="Número máximo de rectángulos a dibujar.")
     args = parser.parse_args()
-# Se añade la lectura de un fichero  coordenadas = []
-# coordenadas.append(coordenadas_yolo)   
+    # Se añade la lectura de un fichero  coordenadas = []
+    # coordenadas.append(coordenadas_yolo)   
     puntos_peatón = []
     for i in range(499, 499+count_dir()):
         #Read   
@@ -41,8 +41,7 @@ if __name__ == "__main__":
         ax.set_frame_on(False)
         plt.title(f'Verificación de funcionamiento - Archivo-{str(i - 498)}')              
 
-        
-        #draw_lidar(detecciones_lidiar, ax)
+    
         draw_lidar(puntos_2D, colores, ax)
         draw_rect(coordenadas_yolo, ax)
         draw_radar(coordenadas_radar, puntos_radar, matrices_radar, ax)

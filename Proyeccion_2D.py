@@ -1,6 +1,8 @@
 import numpy as np
 import matplotlib.patches as patches 
 
+from Write_ply import escribir_archivo_ply
+
 def build_projection_matrix(w, h, fov):
     focal = w / (2.0 * np.tan(fov * np.pi / 360.0))
     K = np.identity(3)
@@ -29,18 +31,18 @@ def matrix_mult(X):
     point_img[1] /= point_img[2]
     return point_img[0:2]
 
-def Prepare_lidar_data(detecciones_lidiar):
+def Prepare_lidar_data(detecciones_lidar):
     puntos = []
     colores = []
     indices= []
 
-    matrices = matrix_type_converter(detecciones_lidiar)
+    matrices = matrix_type_converter(detecciones_lidar)
     for j in range(len(matrices)):
         # if -11 < detecciones_lidiar[j][1] < 11 and detecciones_lidiar[j][0] > 1 and detecciones_lidiar[j][2] > -0.8:
         if(matrices[j][1] > -11 and matrices[j][1] < 11):
             if(matrices[j][0] > 1):
                 if(matrices[j][2] > -0.8 ):
-                    colores.append(color_por_distancia(detecciones_lidiar[j][0]))
+                    colores.append(color_por_distancia(detecciones_lidar[j][0]))
                     punto = matrix_mult(matrices[j])
                     indices.append(j)
                     puntos.append(punto)
