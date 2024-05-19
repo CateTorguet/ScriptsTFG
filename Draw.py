@@ -5,9 +5,9 @@ from Proyeccion_2D import matrix_mult, matrix_mult_radar, matrix_type_converter
 def draw_rect(coordenadas, ax):
     colores = ['r', 'g', 'b', 'c', 'm', 'y', 'k']
     for i in range(len(coordenadas)):
-        x2 = coordenadas[i][0] - coordenadas[i][2] / 2
-        y2 = coordenadas[i][1] - coordenadas[i][3] / 2
-        rectangulo = patches.Rectangle((x2 * 1200, -y2 * 900), coordenadas[i][2] * 1200, -coordenadas[i][3] * 900 ,
+        x2 = coordenadas[i][1] - coordenadas[i][3] / 2
+        y2 = coordenadas[i][2] - coordenadas[i][4] / 2
+        rectangulo = patches.Rectangle((x2 * 1200, -y2 * 900), coordenadas[i][3] * 1200, -coordenadas[i][4] * 900 ,
                                         linewidth=1, edgecolor=colores[i % len(colores)], facecolor='none')
         ax.add_patch(rectangulo)
 

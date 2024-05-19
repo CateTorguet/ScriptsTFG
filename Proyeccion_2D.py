@@ -93,6 +93,7 @@ def polares_2_cartesianas(azimuth, altitude, depth, v):
 
 def Obtener_lidar_ObjetosDetectados(coordenadas_yolo, detecciones_lidar, puntos_lidar, indices):
     trazado_person = []
+    trazado_coche = []
     for categoria in coordenadas_yolo:
         match categoria[0]:
             case 0:
@@ -104,14 +105,40 @@ def Obtener_lidar_ObjetosDetectados(coordenadas_yolo, detecciones_lidar, puntos_
                                            -peaton[3] * 900,
                                         linewidth=1, facecolor='r')
                 for punto, i in zip(puntos_lidar, indices):
-                    if rectangulo.contains_point(punto):
+                    punto_evaluable = [float(punto[0][0]), float(-punto[1][0])]
+                    if rectangulo.contains_point(punto_evaluable):
                         # Capture
                         trazado_person.append(detecciones_lidar[i])
                         pass
                     
             case 2:
-                print("._. Coche")
+                coche = categoria[1:]
+                x2 = coche[0] - coche[2] / 2
+                y2 = coche[1] - coche[3] / 2
+                rectangulo = patches.Rectangle((x2 * 1200, -y2 * 900), 
+                                           coche[2] * 1200, 
+                                           -coche[3] * 900,
+                                        linewidth=1, facecolor='r')
+                for punto, i in zip(puntos_lidar, indices):
+                    punto_evaluable = [float(punto[0][0]), float(-punto[1][0])]
+                    if rectangulo.contains_point(punto_evaluable):
+                        # Capture
+                        trazado_coche.append(detecciones_lidar[i])
+                        pass
             case 7:
-                print("PickUp Some Whatevah")
+                coche = categoria[1:]
+                x2 = coche[0] - coche[2] / 2
+                y2 = coche[1] - coche[3] / 2
+                rectangulo = patches.Rectangle((x2 * 1200, -y2 * 900), 
+                                           coche[2] * 1200, 
+                                           -coche[3] * 900,
+                                        linewidth=1, facecolor='r')
+                for punto, i in zip(puntos_lidar, indices):
+                    punto_evaluable = [float(punto[0][0]), float(-punto[1][0])]
+                    if rectangulo.contains_point(punto_evaluable):
+                        # Capture
+                        trazado_coche.append(detecciones_lidar[i])
+                        pass
             case _:
                 pass
+    return trazado_person, trazado_coche
