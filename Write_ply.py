@@ -1,4 +1,3 @@
-
 def escribir_archivo_ply(vertices, nombre_archivo):
     with open(nombre_archivo, 'w') as archivo:
         archivo.write("ply\n")
