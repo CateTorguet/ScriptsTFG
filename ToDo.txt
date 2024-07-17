@@ -1,0 +1,30 @@
+**************
+Puntos capturados: Sistema referencia vhículo
+Puntos reales: posición vehículo
+
+
+En trazado guardar solo imagenes que la sucesión
+    - Condición primera
+    - Condición prev y post
+
+
+
+
+
+
+
+
+
+
+
+
+Preparación de cara a la presentación
+    - Posible Docker e.e 
+
+Lidar testeo -> need cuda drivers 
+Trazado peatón  
+
+
+Realizar Objetos para poder tener:
+    - limpieza de código
+    - llevar a cabo threads 

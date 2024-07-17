@@ -5,7 +5,7 @@ import tqdm as tq
 from Ubicar import *
 from Leer_Detecciones import *
 from Draw import *
-from Proyeccion_2D import *         # Importa write_ply
+from Proyeccion_2D import *
 
 
 if __name__ == "__main__":
@@ -18,7 +18,7 @@ if __name__ == "__main__":
     # Se añade la lectura de un fichero  coordenadas = []
     # coordenadas.append(coordenadas_yolo)   
     puntos_peatón = []
-    for i in tq.tqdm(range(499, 499+count_dir())):
+    for i in tq.tqdm(range(965, 499+count_dir())):
         
         #Read
         nombre_archivo = Ubicar_txt(i) 
@@ -29,7 +29,7 @@ if __name__ == "__main__":
         background_img = mpimg.imread(nombre_img)
         
         nombre_ply = Ubicar_ply(i)
-        #nombre_ply = "Peaton_lidar.ply"
+        #nombre_ply = "combined_reduced_2.ply"
         detecciones_lidar = leer_coordenadas_lidiar(nombre_ply)
         puntos_2D_lidar, colores, indices = Prepare_lidar_data(detecciones_lidar)
 
